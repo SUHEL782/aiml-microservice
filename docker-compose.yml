@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  inference:
+    build: ./service
+    image: aiml-inference:local
+    ports:
+      - "8080:8080"
+    environment:
+      - INFERENCE_API_KEY=localtestkey
+      - MODEL_PATH=/app/models/text_classifier.joblib
+    restart: on-failure

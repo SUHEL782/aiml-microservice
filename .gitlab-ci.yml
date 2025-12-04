@@ -1,0 +1,30 @@
+stages:
+  - test
+  - build
+  - deploy
+
+test:
+  stage: test
+  image: python:3.11
+  script:
+    - pip install -r service/requirements.txt
+    - pytest -q service/tests
+
+build:
+  stage: build
+  image: docker:24
+  services:
+    - docker:dind
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA service
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  only:
+    - main
+
+deploy:
+  stage: deploy
+  image: bitnami/kubectl
+  script:
+    - kubectl set image deployment/inference-deployment inference=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA -n default
+  only:
+    - main

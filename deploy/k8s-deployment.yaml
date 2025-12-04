@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inference-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: inference
+  template:
+    metadata:
+      labels:
+        app: inference
+    spec:
+      serviceAccountName: inference-sa
+      containers:
+        - name: inference
+          image: your-registry/aiml-inference:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: MODEL_PATH
+              value: "/app/models/text_classifier.joblib"
+            - name: INFERENCE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: inference-secrets
+                  key: INFERENCE_API_KEY
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 20
