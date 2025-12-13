@@ -1,15 +1,13 @@
-# service/app/model.py
+import joblib
 import os
-from joblib import load
-from threading import Lock
 
-_MODEL = None
-_LOCK = Lock()
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(
+    BASE_DIR,
+    "../../training/models/best_model.pkl"
+)
 
-def load_model(path: str = None):
-    global _MODEL
-    with _LOCK:
-        if _MODEL is None:
-            p = path or os.getenv("MODEL_PATH", "/app/models/text_classifier.joblib")
-            _MODEL = load(p)
-    return _MODEL
+model = joblib.load(MODEL_PATH)
+
+def predict(features):
+    return int(model.predict([features])[0])
